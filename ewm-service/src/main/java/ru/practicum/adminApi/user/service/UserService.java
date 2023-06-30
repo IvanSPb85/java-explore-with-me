@@ -1,0 +1,15 @@
+package ru.practicum.adminApi.user.service;
+
+import ru.practicum.adminApi.user.dto.UserDto;
+import ru.practicum.adminApi.user.dto.UserShortDto;
+
+import java.util.Collection;
+import java.util.List;
+
+public interface UserService {
+    UserDto create(UserShortDto userShortDto);
+
+    Collection<UserDto> findUsersByParam(List<Long> ids, Integer from, Integer size);
+
+    void deleteUser(long userId);
+}
