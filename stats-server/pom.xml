@@ -12,7 +12,7 @@
     <artifactId>stats-server</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>DTO</module>
+        <module>dto</module>
         <module>server</module>
         <module>client</module>
     </modules>

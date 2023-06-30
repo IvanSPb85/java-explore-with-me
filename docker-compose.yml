@@ -5,7 +5,6 @@ services:
     container_name: stats_server
     ports:
       - "9090:9090"
-      - "9091:9091"
     depends_on:
       - stats-db
     environment:
@@ -32,9 +31,9 @@ services:
     container_name: ewm_service
     ports:
       - "8080:8080"
-      - "8081:8081"
     depends_on:
       - ewm-db
+      - stats-server
     environment:
       - DB_NAME=ewmDB
       - POSTGRES_USER=ewm
