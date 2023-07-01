@@ -11,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 @Getter
 @NoArgsConstructor
-public class NewUserDto {
+public class NewUserRequest {
     @Email(message = "Email isn't valid")
     @NotBlank(message = "Email can't be blank")
     @Length(min = 6, max = 254, message = "Email length must be min=6 and max=254")

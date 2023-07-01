@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.adminApi.user.dto.UserDto;
-import ru.practicum.adminApi.user.dto.NewUserDto;
+import ru.practicum.adminApi.user.dto.NewUserRequest;
 import ru.practicum.adminApi.user.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,10 +35,10 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody @Valid NewUserDto newUserDto,
+    public ResponseEntity<UserDto> create(@RequestBody @Valid NewUserRequest newUserRequest,
                                           HttpServletRequest request) {
         log.info(REQUEST_POST_LOG, request.getRequestURI());
-        return new ResponseEntity<>(userService.create(newUserDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.create(newUserRequest), HttpStatus.CREATED);
     }
 
     @GetMapping
