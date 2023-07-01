@@ -1,13 +1,15 @@
-package ru.practicum.adminApi.user.dto;
+package ru.practicum.adminApi.category.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
-public class UserShortDto {
+@Builder
+@AllArgsConstructor
+public class CategoryDto {
     private long id;
     private String name;
 }

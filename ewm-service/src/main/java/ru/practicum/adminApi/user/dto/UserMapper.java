@@ -3,10 +3,10 @@ package ru.practicum.adminApi.user.dto;
 import ru.practicum.adminApi.user.model.User;
 
 public class UserMapper {
-    public static User toUser(UserShortDto userShortDto) {
+    public static User toUser(NewUserDto newUserDto) {
         return User.builder()
-                .name(userShortDto.getName())
-                .email(userShortDto.getEmail()).build();
+                .name(newUserDto.getName())
+                .email(newUserDto.getEmail()).build();
     }
 
     public static UserDto toUserDto(User user) {

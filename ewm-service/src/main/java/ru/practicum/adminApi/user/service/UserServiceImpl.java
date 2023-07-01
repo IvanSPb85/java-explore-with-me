@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.adminApi.user.dao.UserRepository;
 import ru.practicum.adminApi.user.dto.UserDto;
 import ru.practicum.adminApi.user.dto.UserMapper;
-import ru.practicum.adminApi.user.dto.UserShortDto;
+import ru.practicum.adminApi.user.dto.NewUserDto;
 import ru.practicum.adminApi.user.model.User;
 import ru.practicum.exception.DataBaseException;
 
@@ -28,8 +28,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserDto create(UserShortDto userShortDto) {
-        User user = UserMapper.toUser(userShortDto);
+    public UserDto create(NewUserDto newUserDto) {
+        User user = UserMapper.toUser(newUserDto);
         UserDto userDto;
         try {
             userDto = UserMapper.toUserDto(userRepository.save(user));
