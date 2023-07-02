@@ -32,9 +32,9 @@ public class EventMapper {
                 .eventDate(newEventDto.getEventDate())
                 .initiator(initiator)
                 .location(newEventDto.getLocation())
-                .paid(newEventDto.isPaid())
+                .paid(newEventDto.getPaid())
                 .participantLimit(newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.isRequestModeration())
+                .requestModeration(newEventDto.getRequestModeration())
                 .state(State.PENDING)
                 .title(newEventDto.getTitle())
                 .views(0L).build();

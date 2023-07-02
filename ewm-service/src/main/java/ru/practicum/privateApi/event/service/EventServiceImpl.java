@@ -10,12 +10,15 @@ import ru.practicum.adminApi.category.dao.CategoryRepository;
 import ru.practicum.adminApi.category.model.Category;
 import ru.practicum.adminApi.user.dao.UserRepository;
 import ru.practicum.adminApi.user.model.User;
+import ru.practicum.constant.State;
+import ru.practicum.constant.UserStateAction;
 import ru.practicum.exception.DataBaseException;
 import ru.practicum.privateApi.event.dao.EventRepository;
 import ru.practicum.privateApi.event.dto.EventFullDto;
 import ru.practicum.privateApi.event.dto.EventMapper;
 import ru.practicum.privateApi.event.dto.EventShortDto;
 import ru.practicum.privateApi.event.dto.NewEventDto;
+import ru.practicum.privateApi.event.dto.UpdateEventUserRequest;
 import ru.practicum.privateApi.event.model.Event;
 
 import java.security.InvalidParameterException;
@@ -46,7 +49,7 @@ public class EventServiceImpl implements EventService {
             throws InvalidParameterException, NoSuchElementException {
         User initiator = userRepository.findById(userId).orElseThrow();
         Category category = categoryRepository.findById(newEventDto.getCategory()).orElseThrow();
-        checkEventDate(newEventDto);
+        checkEventDate(newEventDto.getEventDate());
         Event event = EventMapper.toEvent(newEventDto, category, initiator);
         EventFullDto eventFullDto;
         try {
@@ -70,13 +73,41 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventFullDto update(long ownerId, long eventId, EventShortDto eventShortDto) {
-
-        return null;
+    public EventFullDto update(long ownerId, long eventId, UpdateEventUserRequest request) {
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        if (event.getState().equals(State.PUBLISHED)) {
+            throw new DataBaseException(String.format("Event with id = %d has no available for update", eventId));
+        }
+        if (event.getInitiator().getId() != ownerId)
+            throw new DataBaseException(String.format("User with id = %d has no available event", ownerId));
+        if (request.getEventDate() != null) {
+            checkEventDate(request.getEventDate());
+            event.setEventDate(request.getEventDate());
+        }
+        if (request.getCategory() != null) {
+            Category category = categoryRepository.findById(request.getCategory()).orElseThrow();
+            event.setCategory(category);
+        }
+        if (request.getAnnotation() != null) event.setAnnotation(request.getAnnotation());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getLocation() != null) event.setLocation(request.getLocation());
+        if (request.getPaid() != null) event.setPaid(true);
+        if (request.getParticipantLimit() != null) event.setParticipantLimit(request.getParticipantLimit());
+        if (request.getRequestModeration() != null) event.setRequestModeration(request.getRequestModeration());
+        UserStateAction stateAction = request.getStateAction();
+        if (stateAction != null) {
+            if (stateAction.equals(UserStateAction.CANCEL_REVIEW)) {
+                event.setState(State.CANCELED);
+            } else if (stateAction.equals(UserStateAction.SEND_TO_REVIEW)) event.setState(State.PENDING);
+        }
+        if (request.getTitle() != null) event.setTitle(request.getTitle());
+        Event updatedEvent = eventRepository.save(event);
+        log.info("Event with id = {} update", updatedEvent.getId());
+        return EventMapper.toEventFullDto(updatedEvent);
     }
 
-    private void checkEventDate(NewEventDto newEventDto) {
-        if (newEventDto.getEventDate().minusHours(2).isBefore(LocalDateTime.now()))
+    private void checkEventDate(LocalDateTime dateTime) {
+        if (dateTime.minusHours(2).isBefore(LocalDateTime.now()))
             throw new InvalidParameterException("eventDate can't be earlier than two hours before current moment");
     }
 }
