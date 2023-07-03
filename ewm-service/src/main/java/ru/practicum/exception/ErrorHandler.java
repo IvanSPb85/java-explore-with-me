@@ -7,10 +7,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.adminApi.category.controller.CategoryController;
-import ru.practicum.adminApi.event.AdminEventController;
-import ru.practicum.adminApi.user.controller.UserController;
-import ru.practicum.privateApi.event.controller.EventController;
+import ru.practicum.category.controller.adminApi.CategoryController;
+import ru.practicum.event.controller.adminApi.AdminEventController;
+import ru.practicum.user.controller.adminApi.UserController;
+import ru.practicum.event.controller.privateApi.EventController;
 
 import java.security.InvalidParameterException;
 import java.util.Map;
