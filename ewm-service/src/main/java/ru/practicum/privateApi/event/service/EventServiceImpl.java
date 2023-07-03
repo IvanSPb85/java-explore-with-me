@@ -4,26 +4,32 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.adminApi.category.dao.CategoryRepository;
 import ru.practicum.adminApi.category.model.Category;
 import ru.practicum.adminApi.user.dao.UserRepository;
 import ru.practicum.adminApi.user.model.User;
+import ru.practicum.constant.AdminStateAction;
 import ru.practicum.constant.State;
 import ru.practicum.constant.UserStateAction;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.DataBaseException;
 import ru.practicum.privateApi.event.dao.EventRepository;
 import ru.practicum.privateApi.event.dto.EventFullDto;
 import ru.practicum.privateApi.event.dto.EventMapper;
 import ru.practicum.privateApi.event.dto.EventShortDto;
+import ru.practicum.privateApi.event.dto.NewEvent;
 import ru.practicum.privateApi.event.dto.NewEventDto;
+import ru.practicum.privateApi.event.dto.UpdateEventAdminRequest;
 import ru.practicum.privateApi.event.dto.UpdateEventUserRequest;
 import ru.practicum.privateApi.event.model.Event;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -49,7 +55,7 @@ public class EventServiceImpl implements EventService {
             throws InvalidParameterException, NoSuchElementException {
         User initiator = userRepository.findById(userId).orElseThrow();
         Category category = categoryRepository.findById(newEventDto.getCategory()).orElseThrow();
-        checkEventDate(newEventDto.getEventDate());
+        checkEventDate(newEventDto.getEventDate(), 2);
         Event event = EventMapper.toEvent(newEventDto, category, initiator);
         EventFullDto eventFullDto;
         try {
@@ -73,7 +79,7 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventFullDto update(long ownerId, long eventId, UpdateEventUserRequest request) {
+    public EventFullDto updateByUser(long ownerId, long eventId, UpdateEventUserRequest request) {
         Event event = eventRepository.findById(eventId).orElseThrow();
         if (event.getState().equals(State.PUBLISHED)) {
             throw new DataBaseException(String.format("Event with id = %d has no available for update", eventId));
@@ -81,33 +87,74 @@ public class EventServiceImpl implements EventService {
         if (event.getInitiator().getId() != ownerId)
             throw new DataBaseException(String.format("User with id = %d has no available event", ownerId));
         if (request.getEventDate() != null) {
-            checkEventDate(request.getEventDate());
+            checkEventDate(request.getEventDate(), 2);
             event.setEventDate(request.getEventDate());
         }
-        if (request.getCategory() != null) {
-            Category category = categoryRepository.findById(request.getCategory()).orElseThrow();
-            event.setCategory(category);
-        }
-        if (request.getAnnotation() != null) event.setAnnotation(request.getAnnotation());
-        if (request.getDescription() != null) event.setDescription(request.getDescription());
-        if (request.getLocation() != null) event.setLocation(request.getLocation());
-        if (request.getPaid() != null) event.setPaid(true);
-        if (request.getParticipantLimit() != null) event.setParticipantLimit(request.getParticipantLimit());
-        if (request.getRequestModeration() != null) event.setRequestModeration(request.getRequestModeration());
+
         UserStateAction stateAction = request.getStateAction();
         if (stateAction != null) {
             if (stateAction.equals(UserStateAction.CANCEL_REVIEW)) {
                 event.setState(State.CANCELED);
             } else if (stateAction.equals(UserStateAction.SEND_TO_REVIEW)) event.setState(State.PENDING);
         }
-        if (request.getTitle() != null) event.setTitle(request.getTitle());
-        Event updatedEvent = eventRepository.save(event);
+
+        Event updatedEvent = eventRepository.save(updateEvent(event, request));
         log.info("Event with id = {} update", updatedEvent.getId());
         return EventMapper.toEventFullDto(updatedEvent);
     }
 
-    private void checkEventDate(LocalDateTime dateTime) {
-        if (dateTime.minusHours(2).isBefore(LocalDateTime.now()))
-            throw new InvalidParameterException("eventDate can't be earlier than two hours before current moment");
+    @Override
+    public Collection<EventFullDto> findEventsByParam(List<Long> users, List<State> states, List<Long> categories,
+                                                      LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                                      Integer from, Integer size) {
+        if (from > 0 && size > 0) from = from / size;
+        Collection<Event> events = eventRepository.findEventsByParams(users, states, categories, rangeStart,
+                rangeEnd, PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "id")));
+        log.info("Found {} events", events.size());
+        return events.stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
     }
+
+    @Transactional
+    @Override
+    public EventFullDto updateByAdmin(long eventId, UpdateEventAdminRequest request) {
+        if (request.getEventDate() != null) checkEventDate(request.getEventDate(), 1);
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        if (!event.getState().equals(State.PENDING))
+            throw new ConflictException(String.format("Event can't update: current state %s", event.getState()));
+        if (request.getStateAction().equals(AdminStateAction.REJECT_EVENT)
+                && event.getState().equals(State.PUBLISHED))
+            throw new ConflictException(String.format("Event can't reject: current state %S", event.getState()));
+        if (request.getStateAction().equals(AdminStateAction.PUBLISH_EVENT)) {
+            event.setState(State.PUBLISHED);
+            event.setPublishedOn(LocalDateTime.now());
+        }
+        if (request.getStateAction().equals(AdminStateAction.REJECT_EVENT))
+            event.setState(State.CANCELED);
+        Event editEvent = eventRepository.saveAndFlush(updateEvent(event, request));
+        log.info("Event with id = {} update", editEvent.getId());
+        return EventMapper.toEventFullDto(editEvent);
+    }
+
+    private void checkEventDate(LocalDateTime dateTime, long hours) {
+        if (dateTime.minusHours(hours).isBefore(LocalDateTime.now()))
+            throw new ConflictException(
+                    String.format("eventDate can't be earlier than %d hours before current moment", hours));
+    }
+
+    private Event updateEvent(Event event, NewEvent newEvent) {
+        if (newEvent.getCategory() != null) {
+            Category category = categoryRepository.findById(newEvent.getCategory()).orElseThrow();
+            event.setCategory(category);
+        }
+        if (newEvent.getAnnotation() != null) event.setAnnotation(newEvent.getAnnotation());
+        if (newEvent.getDescription() != null) event.setDescription(newEvent.getDescription());
+        if (newEvent.getLocation() != null) event.setLocation(newEvent.getLocation());
+        if (newEvent.getPaid() != null) event.setPaid(true);
+        if (newEvent.getParticipantLimit() != null) event.setParticipantLimit(newEvent.getParticipantLimit());
+        if (newEvent.getRequestModeration() != null) event.setRequestModeration(newEvent.getRequestModeration());
+        if (newEvent.getTitle() != null) event.setTitle(newEvent.getTitle());
+        return event;
+    }
+
+
 }

@@ -53,6 +53,7 @@ public class EventMapper {
                 .location(event.getLocation())
                 .paid(event.isPaid())
                 .participantLimit(event.getParticipantLimit())
+                .publishedOn(event.getPublishedOn())
                 .requestModeration(event.isRequestModeration())
                 .state(event.getState())
                 .title(event.getTitle()).build();

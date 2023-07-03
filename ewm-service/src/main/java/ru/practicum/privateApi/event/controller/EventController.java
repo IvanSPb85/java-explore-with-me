@@ -68,6 +68,6 @@ public class EventController {
                                                            @RequestBody @Valid UpdateEventUserRequest eventUserRequest,
                                                            HttpServletRequest request) {
         log.info(REQUEST_PATCH_LOG, request.getRequestURI());
-        return new ResponseEntity<>(eventService.update(userId, eventId, eventUserRequest), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.updateByUser(userId, eventId, eventUserRequest), HttpStatus.OK);
     }
 }

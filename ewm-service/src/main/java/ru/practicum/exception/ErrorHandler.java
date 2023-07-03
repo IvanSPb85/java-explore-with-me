@@ -1,26 +1,30 @@
 package ru.practicum.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.adminApi.category.controller.CategoryController;
+import ru.practicum.adminApi.event.AdminEventController;
 import ru.practicum.adminApi.user.controller.UserController;
+import ru.practicum.privateApi.event.controller.EventController;
 
 import java.security.InvalidParameterException;
 import java.util.Map;
 
 @Slf4j
-@RestControllerAdvice(assignableTypes = {UserController.class, CategoryController.class})
+@RestControllerAdvice(assignableTypes = {UserController.class, CategoryController.class,
+        AdminEventController.class, EventController.class})
 public class ErrorHandler {
 
     class ApiError { //todo
         private String error;
     }
 
-    @ExceptionHandler({DataBaseException.class})
+    @ExceptionHandler({DataBaseException.class, DataIntegrityViolationException.class, ConflictException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, String> handleNotFound(final RuntimeException e) {
         log.warn(e.getMessage());

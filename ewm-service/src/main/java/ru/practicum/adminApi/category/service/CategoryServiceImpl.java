@@ -2,6 +2,7 @@ package ru.practicum.adminApi.category.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,12 +43,13 @@ public class CategoryServiceImpl implements CategoryService {
     public void delete(long catId) {
         if (categoryRepository.existsById(catId)) {
             categoryRepository.deleteById(catId);
-            log.info("Category with id = {} deleted", catId);
         } else {
             log.warn("Deleting a category with id = {} is not possible, category not found", catId);
             throw new InvalidParameterException(String.format(
                     "Deleting a category with id = %s is not possible, category not found", catId));
         }
+        log.info("Category with id = {} deleted", catId);
+
         // todo constraint 409
     }
 
@@ -56,7 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(catId).orElseThrow();
         category.setName(newCategoryDto.getName());
         try {
-            categoryRepository.save(category);
+            categoryRepository.saveAndFlush(category);
         } catch (DataIntegrityViolationException e) {
             log.warn("Category with name = {} already exists", category.getName());
             throw new DataBaseException(String.format("Category with name = %s already exists",
