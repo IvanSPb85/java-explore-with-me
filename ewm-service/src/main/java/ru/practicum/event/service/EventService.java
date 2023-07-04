@@ -1,11 +1,13 @@
 package ru.practicum.event.service;
 
 import ru.practicum.constant.StateEvent;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.event.dto.EventFullDto;
+import ru.practicum.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.event.dto.EventShortDto;
+import ru.practicum.event.dto.NewEventDto;
 import ru.practicum.event.dto.UpdateEventAdminRequest;
+import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.request.dto.ParticipationRequestDto;
 
 import java.time.LocalDateTime;
@@ -29,4 +31,6 @@ public interface EventService {
     EventFullDto updateByAdmin(long eventId, UpdateEventAdminRequest updateEvent);
 
     Collection<ParticipationRequestDto> findRequestsForEvent(long userId, long eventId);
+
+    EventRequestStatusUpdateResult updateRequests(long userId, long eventId, EventRequestStatusUpdateRequest request);
 }

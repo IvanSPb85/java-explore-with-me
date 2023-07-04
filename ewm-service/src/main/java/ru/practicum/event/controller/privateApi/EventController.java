@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.event.dto.EventFullDto;
+import ru.practicum.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.NewEventDto;
 import ru.practicum.event.dto.UpdateEventUserRequest;
@@ -79,5 +81,15 @@ public class EventController {
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request.getRequestURI());
         return new ResponseEntity<>(eventService.findRequestsForEvent(userId, eventId), HttpStatus.OK);
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public ResponseEntity<EventRequestStatusUpdateResult> updateRequests(
+            @PathVariable long userId,
+            @PathVariable long eventId,
+            @RequestBody EventRequestStatusUpdateRequest requestUpdate,
+            HttpServletRequest request) {
+        log.info(REQUEST_PATCH_LOG, request.getRequestURI());
+        return new ResponseEntity<>(eventService.updateRequests(userId, eventId, requestUpdate), HttpStatus.OK);
     }
 }

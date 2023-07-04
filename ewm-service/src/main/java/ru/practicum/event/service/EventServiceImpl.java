@@ -11,10 +11,14 @@ import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.model.Category;
 import ru.practicum.constant.AdminStateAction;
 import ru.practicum.constant.StateEvent;
+import ru.practicum.constant.StatusRequest;
+import ru.practicum.constant.StatusRequestUpdate;
 import ru.practicum.constant.UserStateAction;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventMapper;
+import ru.practicum.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.NewEvent;
 import ru.practicum.event.dto.NewEventDto;
@@ -32,6 +36,7 @@ import ru.practicum.user.model.User;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -149,6 +154,66 @@ public class EventServiceImpl implements EventService {
         return requests.stream().map(RequestMapper::toParticipationRequestDto).collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public EventRequestStatusUpdateResult updateRequests(long userId, long eventId,
+                                                         EventRequestStatusUpdateRequest request) {
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        if (event.getInitiator().getId() != userId)
+            throw new ConflictException(String.format("Not found Event for User with id %d", userId));
+        List<Request> requests = requestRepository.findAllByIdIn(request.getRequestIds());
+        List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
+        List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
+
+        // если новый статус для заявок на участие в событии REJECTED
+        if (request.getStatus().equals(StatusRequestUpdate.REJECTED)) {
+            // для каждой заявки обновляем статус на REJECTED
+            requests.forEach(req -> updateRequestStatus(req, StatusRequest.REJECTED, rejectedRequests));
+        } else if (request.getStatus().equals(StatusRequestUpdate.CONFIRMED)) {
+            // если для события лимит заявок равен 0 или отключена пре-модерация заявок
+            if (event.getParticipantLimit() == 0 | !event.isRequestModeration()) {
+                // для каждой заявки обновляем статус на CONFIRMED
+                requests.forEach(req -> updateRequestStatus(req, StatusRequest.CONFIRMED, confirmedRequests));
+                // инкрементируем у события число подтвержденных заявок
+                event.setConfirmedRequests(event.getConfirmedRequests() + requests.size());
+            } else {
+                for (Request req : requests) {
+                    // если для события лимит заявок не равен 0 и лимит заявок исчерпан
+                    if (event.getParticipantLimit() != 0
+                            && event.getConfirmedRequests() == event.getParticipantLimit()) {
+                        // заявку нужно отменить, добавить в список отклоненных и сохранить в базе данных
+                        updateRequestStatus(req, StatusRequest.REJECTED, rejectedRequests);
+                    } else {
+                        // иначе подтверждаем заявку, вносим в список подтвержденных, сохраняем ее в репозиторий
+                        updateRequestStatus(req, StatusRequest.CONFIRMED, confirmedRequests);
+                        // и инкрементируем у события число подтвержденных заявок
+                        event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+                    }
+                }
+                // если был исчерпан лимит заявок и список не пустой, кидаем исключение
+                if (!rejectedRequests.isEmpty())
+                    throw new ConflictException("The limit on applications for this event has been reached");
+            }
+        }
+
+        eventRepository.save(event);
+        return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
+    }
+
+    private void checkRequestStatus(Request request) {
+        if (!request.getStatus().equals(StatusRequest.PENDING))
+            throw new ConflictException(String.format("Request can't update, because request has status %s",
+                    request.getStatus().toString()));
+    }
+
+    private void updateRequestStatus(Request req, StatusRequest status, List<ParticipationRequestDto> requestDtoList) {
+        // статус можно изменить только у заявок, находящихся в состоянии ожидания
+        checkRequestStatus(req);
+        // меняем статус у заявки, добавляем в список  и сохраняем в базе данных
+        req.setStatus(status);
+        requestDtoList.add(RequestMapper.toParticipationRequestDto(req));
+        requestRepository.save(req);
+    }
 
     private void checkEventDate(LocalDateTime dateTime, long hours) {
         if (dateTime.minusHours(hours).isBefore(LocalDateTime.now()))

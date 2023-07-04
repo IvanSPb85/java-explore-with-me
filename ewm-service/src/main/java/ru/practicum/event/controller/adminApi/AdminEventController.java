@@ -19,6 +19,7 @@ import ru.practicum.event.dto.UpdateEventAdminRequest;
 import ru.practicum.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -52,7 +53,7 @@ public class AdminEventController {
 
     @PatchMapping("/{eventId}")
     public ResponseEntity<EventFullDto> editEvent(@PathVariable long eventId,
-                                                  @RequestBody UpdateEventAdminRequest updateEvent,
+                                                  @RequestBody @Valid UpdateEventAdminRequest updateEvent,
                                                   HttpServletRequest request) {
         log.info(REQUEST_PATCH_LOG, request.getRequestURI());
         return new ResponseEntity<>(eventService.updateByAdmin(eventId, updateEvent), HttpStatus.OK);
