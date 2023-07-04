@@ -6,6 +6,7 @@ import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.UpdateEventAdminRequest;
+import ru.practicum.request.dto.ParticipationRequestDto;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -26,4 +27,6 @@ public interface EventService {
                                                Integer from, Integer size);
 
     EventFullDto updateByAdmin(long eventId, UpdateEventAdminRequest updateEvent);
+
+    Collection<ParticipationRequestDto> findRequestsForEvent(long userId, long eventId);
 }

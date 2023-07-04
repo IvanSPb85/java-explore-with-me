@@ -9,22 +9,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.model.Category;
+import ru.practicum.constant.AdminStateAction;
+import ru.practicum.constant.StateEvent;
+import ru.practicum.constant.UserStateAction;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventMapper;
 import ru.practicum.event.dto.EventShortDto;
+import ru.practicum.event.dto.NewEvent;
 import ru.practicum.event.dto.NewEventDto;
 import ru.practicum.event.dto.UpdateEventAdminRequest;
 import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.event.model.Event;
-import ru.practicum.user.dao.UserRepository;
-import ru.practicum.user.model.User;
-import ru.practicum.constant.AdminStateAction;
-import ru.practicum.constant.StateEvent;
-import ru.practicum.constant.UserStateAction;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.DataBaseException;
-import ru.practicum.event.dto.NewEvent;
+import ru.practicum.request.dao.RequestRepository;
+import ru.practicum.request.dto.ParticipationRequestDto;
+import ru.practicum.request.dto.RequestMapper;
+import ru.practicum.request.model.Request;
+import ru.practicum.user.dao.UserRepository;
+import ru.practicum.user.model.User;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
@@ -41,6 +45,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final RequestRepository requestRepository;
 
     @Override
     public Collection<EventShortDto> findEventsByOwner(long ownerId, Integer from, Integer size) {
@@ -135,6 +140,16 @@ public class EventServiceImpl implements EventService {
         return EventMapper.toEventFullDto(editEvent);
     }
 
+    @Override
+    public Collection<ParticipationRequestDto> findRequestsForEvent(long userId, long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        if (event.getInitiator().getId() != userId)
+            throw new ConflictException(String.format("Not found Event for User with id %d", userId));
+        Collection<Request> requests = requestRepository.findAllByEventId(eventId);
+        return requests.stream().map(RequestMapper::toParticipationRequestDto).collect(Collectors.toList());
+    }
+
+
     private void checkEventDate(LocalDateTime dateTime, long hours) {
         if (dateTime.minusHours(hours).isBefore(LocalDateTime.now()))
             throw new ConflictException(
@@ -149,7 +164,7 @@ public class EventServiceImpl implements EventService {
         if (newEvent.getAnnotation() != null) event.setAnnotation(newEvent.getAnnotation());
         if (newEvent.getDescription() != null) event.setDescription(newEvent.getDescription());
         if (newEvent.getLocation() != null) event.setLocation(newEvent.getLocation());
-        if (newEvent.getPaid() != null) event.setPaid(true);
+        if (newEvent.getPaid() != null) event.setPaid(newEvent.getPaid());
         if (newEvent.getParticipantLimit() != null) event.setParticipantLimit(newEvent.getParticipantLimit());
         if (newEvent.getRequestModeration() != null) event.setRequestModeration(newEvent.getRequestModeration());
         if (newEvent.getTitle() != null) event.setTitle(newEvent.getTitle());

@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
+import ru.practicum.event.dto.NewEventDto;
+import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.event.service.EventService;
+import ru.practicum.request.dto.ParticipationRequestDto;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -69,5 +70,14 @@ public class EventController {
                                                            HttpServletRequest request) {
         log.info(REQUEST_PATCH_LOG, request.getRequestURI());
         return new ResponseEntity<>(eventService.updateByUser(userId, eventId, eventUserRequest), HttpStatus.OK);
+    }
+
+    @GetMapping("/{eventId}/requests")
+    public ResponseEntity<Collection<ParticipationRequestDto>> getRequestsForEvent(
+            @PathVariable long userId,
+            @PathVariable long eventId,
+            HttpServletRequest request) {
+        log.info(REQUEST_GET_LOG, request.getRequestURI());
+        return new ResponseEntity<>(eventService.findRequestsForEvent(userId, eventId), HttpStatus.OK);
     }
 }
