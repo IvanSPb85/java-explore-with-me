@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.category.model.Category;
-import ru.practicum.user.model.User;
 import ru.practicum.constant.StateEvent;
+import ru.practicum.user.model.User;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;

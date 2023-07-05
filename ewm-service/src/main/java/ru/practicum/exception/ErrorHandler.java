@@ -8,17 +8,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.category.controller.adminApi.CategoryController;
+import ru.practicum.compilation.controller.adminApi.CompilationController;
 import ru.practicum.event.controller.adminApi.AdminEventController;
+import ru.practicum.event.controller.privateApi.EventController;
 import ru.practicum.request.controller.privateApi.RequestController;
 import ru.practicum.user.controller.adminApi.UserController;
-import ru.practicum.event.controller.privateApi.EventController;
 
 import java.security.InvalidParameterException;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class, CategoryController.class,
-        AdminEventController.class, EventController.class, RequestController.class})
+        AdminEventController.class, EventController.class, RequestController.class,
+        CompilationController.class})
 public class ErrorHandler {
 
     class ApiError { //todo
