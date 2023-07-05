@@ -14,5 +14,5 @@ public interface CompilationService {
 
     CompilationDto findById(long compId);
 
-    Collection<CompilationDto> findAllByParam(boolean pinned, Integer from, Integer size);
+    Collection<CompilationDto> findAllByParam(Boolean pinned, Integer from, Integer size);
 }

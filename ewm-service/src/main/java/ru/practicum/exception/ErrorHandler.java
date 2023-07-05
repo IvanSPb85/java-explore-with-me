@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.category.controller.adminApi.CategoryController;
+import ru.practicum.category.controller.publicApi.PublicCategoryController;
 import ru.practicum.compilation.controller.adminApi.CompilationController;
 import ru.practicum.event.controller.adminApi.AdminEventController;
 import ru.practicum.event.controller.privateApi.EventController;
@@ -16,11 +17,12 @@ import ru.practicum.user.controller.adminApi.UserController;
 
 import java.security.InvalidParameterException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class, CategoryController.class,
         AdminEventController.class, EventController.class, RequestController.class,
-        CompilationController.class})
+        CompilationController.class, PublicCategoryController.class})
 public class ErrorHandler {
 
     class ApiError { //todo
@@ -35,9 +37,9 @@ public class ErrorHandler {
     }
 
 
-    @ExceptionHandler
+    @ExceptionHandler({NoSuchElementException.class, InvalidParameterException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleBadRequest(final InvalidParameterException e) {
+    public Map<String, String> handleBadRequest(final RuntimeException e) {
         log.warn(e.getMessage());
         return Map.of("error", e.getMessage());
     }

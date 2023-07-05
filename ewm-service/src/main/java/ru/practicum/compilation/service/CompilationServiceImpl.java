@@ -16,6 +16,7 @@ import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.exception.ConflictException;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,10 +78,13 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public Collection<CompilationDto> findAllByParam(boolean pinned, Integer from, Integer size) {
+    public Collection<CompilationDto> findAllByParam(Boolean pinned, Integer from, Integer size) {
         if (from > 0 && size > 0) from = from / size;
-        Collection<Compilation> compilations = compRepository.findAllByPinned(pinned,
+        Collection<Compilation> compilations = new ArrayList<>();
+        if (pinned != null) compilations = compRepository.findAllByPinned(pinned,
                 PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "Id")));
-        return compilations.stream().map(CompilationMapper::toCompilationDto).collect(Collectors.toSet());
+        else compilations = compRepository.findAll(PageRequest.of(from, size,
+                Sort.by(Sort.Direction.ASC, "Id"))).toList();
+        return compilations.stream().map(CompilationMapper::toCompilationDto).collect(Collectors.toList());
     }
 }
