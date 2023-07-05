@@ -1,8 +1,10 @@
 package ru.practicum.compilation.service;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilation.dao.CompilationRepository;
@@ -14,18 +16,21 @@ import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.exception.ConflictException;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@AllArgsConstructor
-@Transactional
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compRepository;
     private final EventRepository eventRepository;
 
     @Override
+    @Transactional
     public CompilationDto create(NewCompilationDto newCompilationDto) {
         Set<Event> events = new HashSet<>();
         newCompilationDto.getEvents().forEach(eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));
@@ -40,6 +45,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void delete(Long compId) {
         Compilation compilation = compRepository.findById(compId).orElseThrow();
         compRepository.deleteById(compId);
@@ -47,8 +53,34 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public CompilationDto update(long compId, NewCompilationDto newCompilationDto) {
         Compilation compilation = compRepository.findById(compId).orElseThrow();
-        return create(newCompilationDto);
+        if (newCompilationDto.getEvents() != null) {
+            Set<Event> events = new HashSet<>();
+            newCompilationDto.getEvents()
+                    .forEach(eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));
+            compilation.setEvents(events);
+        }
+        if (newCompilationDto.getPinned() != null) compilation.setPinned(newCompilationDto.getPinned());
+        if (newCompilationDto.getTitle() != null) compilation.setTitle(newCompilationDto.getTitle());
+        log.info("Compilation with id '{}' updated", compilation.getId());
+        compRepository.saveAndFlush(compilation);
+        return CompilationMapper.toCompilationDto(compilation);
+    }
+
+    @Override
+    public CompilationDto findById(long compId) {
+        Compilation compilation = compRepository.findById(compId).orElseThrow();
+        log.info("Found compilation with id '{}' and title '{}'", compilation.getId(), compilation.getTitle());
+        return CompilationMapper.toCompilationDto(compilation);
+    }
+
+    @Override
+    public Collection<CompilationDto> findAllByParam(boolean pinned, Integer from, Integer size) {
+        if (from > 0 && size > 0) from = from / size;
+        Collection<Compilation> compilations = compRepository.findAllByPinned(pinned,
+                PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "Id")));
+        return compilations.stream().map(CompilationMapper::toCompilationDto).collect(Collectors.toSet());
     }
 }

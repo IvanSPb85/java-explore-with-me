@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +41,7 @@ public class CompilationController {
     }
 
     @DeleteMapping("/{compId}")
-    public ResponseEntity<Void> delete(Long compId, HttpServletRequest request) {
+    public ResponseEntity<Void> delete(@PathVariable Long compId, HttpServletRequest request) {
         log.info(REQUEST_DELETE_LOG, request.getRequestURI());
         compilationService.delete(compId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -48,8 +49,8 @@ public class CompilationController {
 
     @PatchMapping("/{compId}")
     public ResponseEntity<CompilationDto> update(
-            @RequestBody @Valid NewCompilationDto newCompilationDto,
-            Long compId, HttpServletRequest request) {
+            @RequestBody  NewCompilationDto newCompilationDto,
+            @PathVariable Long compId, HttpServletRequest request) {
         log.info(REQUEST_PATCH_LOG, request.getRequestURI());
         return new ResponseEntity<>(compilationService.update(compId, newCompilationDto), HttpStatus.OK);
     }

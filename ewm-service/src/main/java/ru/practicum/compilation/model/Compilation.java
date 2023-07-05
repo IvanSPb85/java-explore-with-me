@@ -35,6 +35,6 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(name = "is_pinned")
-    private boolean pinned;
+    private Boolean pinned;
     private String title;
 }
