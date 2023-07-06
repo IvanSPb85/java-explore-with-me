@@ -28,7 +28,7 @@ public class StatsClient extends BaseClient {
         return post("hit", endpointHitDto);
     }
 
-    public ResponseEntity<Object> findStatsOfPeriod(String start, String end, List<String> uris, Boolean unique) {
+    public ResponseEntity<Object> findStatsOfPeriod(String start, String end, String[] uris, Boolean unique) {
         Map<String, Object> parameters = Map.of(
                 "start", start,
                 "end", end,

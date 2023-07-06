@@ -12,6 +12,7 @@ import ru.practicum.category.controller.publicApi.PublicCategoryController;
 import ru.practicum.compilation.controller.adminApi.CompilationController;
 import ru.practicum.event.controller.adminApi.AdminEventController;
 import ru.practicum.event.controller.privateApi.EventController;
+import ru.practicum.event.controller.publicApi.PublicEventController;
 import ru.practicum.request.controller.privateApi.RequestController;
 import ru.practicum.user.controller.adminApi.UserController;
 
@@ -22,7 +23,7 @@ import java.util.NoSuchElementException;
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class, CategoryController.class,
         AdminEventController.class, EventController.class, RequestController.class,
-        CompilationController.class, PublicCategoryController.class})
+        CompilationController.class, PublicCategoryController.class, PublicEventController.class})
 public class ErrorHandler {
 
     class ApiError { //todo

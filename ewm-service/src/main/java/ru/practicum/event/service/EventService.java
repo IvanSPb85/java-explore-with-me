@@ -10,6 +10,7 @@ import ru.practicum.event.dto.UpdateEventAdminRequest;
 import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.request.dto.ParticipationRequestDto;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -33,4 +34,11 @@ public interface EventService {
     Collection<ParticipationRequestDto> findRequestsForEvent(long userId, long eventId);
 
     EventRequestStatusUpdateResult updateRequests(long userId, long eventId, EventRequestStatusUpdateRequest request);
+
+    Collection<EventShortDto> findAllByParam(String text, List<Long> categories, Boolean paid,
+                                             LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                             Boolean onlyAvailable, String sort,
+                                             Integer from, Integer size, HttpServletRequest request);
+
+    EventFullDto findById(long eventId, HttpServletRequest request);
 }

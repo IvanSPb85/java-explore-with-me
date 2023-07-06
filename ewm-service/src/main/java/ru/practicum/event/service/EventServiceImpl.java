@@ -1,6 +1,5 @@
 package ru.practicum.event.service;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -8,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.StatsClient;
 import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.model.Category;
 import ru.practicum.constant.AdminStateAction;
@@ -15,6 +15,7 @@ import ru.practicum.constant.StateEvent;
 import ru.practicum.constant.StatusRequest;
 import ru.practicum.constant.StatusRequestUpdate;
 import ru.practicum.constant.UserStateAction;
+import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventMapper;
@@ -35,8 +36,11 @@ import ru.practicum.request.model.Request;
 import ru.practicum.user.dao.UserRepository;
 import ru.practicum.user.model.User;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,6 +56,9 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
+    private final StatsClient statsClient;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 
     @Override
     public Collection<EventShortDto> findEventsByOwner(long ownerId, Integer from, Integer size) {
@@ -200,6 +207,31 @@ public class EventServiceImpl implements EventService {
         eventRepository.save(event);
         return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
     }
+
+    @Override
+    public Collection<EventShortDto> findAllByParam(String text, List<Long> categories, Boolean paid,
+                                                    LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                                    Boolean onlyAvailable, String sort,
+                                                    Integer from, Integer size, HttpServletRequest request) {
+        return eventRepository.findAll().stream().map(EventMapper::toEventShortDto).collect(Collectors.toList()); // todo заглушка
+    }
+
+    @Override
+    public EventFullDto findById(long eventId, HttpServletRequest request) {
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        if (!event.getState().equals(StateEvent.PUBLISHED))
+            throw new InvalidParameterException(String.format("Event with id %d is not available", eventId));
+        String start = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).format(formatter); // todo Published time
+        String end = LocalDateTime.now().plusYears(1000).format(formatter);
+        String[] uris = new String[]{request.getRequestURI()};
+        Collection<ViewStatsDto> views = (Collection<ViewStatsDto>) statsClient
+                .findStatsOfPeriod(start, end, uris, false).getBody();
+        if (views != null)
+            event.setViews(views.size());
+        else event.setViews(0);
+        return EventMapper.toEventFullDto(event);
+    }
+
 
     private void checkRequestStatus(Request request) {
         if (!request.getStatus().equals(StatusRequest.PENDING))

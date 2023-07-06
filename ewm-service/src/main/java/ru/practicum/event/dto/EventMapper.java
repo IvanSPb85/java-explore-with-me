@@ -56,6 +56,7 @@ public class EventMapper {
                 .publishedOn(event.getPublishedOn())
                 .requestModeration(event.isRequestModeration())
                 .state(event.getState())
-                .title(event.getTitle()).build();
+                .title(event.getTitle())
+                .views(event.getViews()).build();
     }
 }
