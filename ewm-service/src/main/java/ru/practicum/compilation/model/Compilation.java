@@ -34,7 +34,7 @@ public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(name = "is_pinned")
+    @Column(name = "is_pinned", columnDefinition = "boolean default false")
     private Boolean pinned;
     private String title;
 }

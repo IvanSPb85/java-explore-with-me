@@ -34,7 +34,10 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationDto create(NewCompilationDto newCompilationDto) {
         Set<Event> events = new HashSet<>();
-        newCompilationDto.getEvents().forEach(eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));
+        if (newCompilationDto.getEvents() != null) {
+            newCompilationDto.getEvents().forEach(eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));
+        }
+        if (newCompilationDto.getPinned() == null) newCompilationDto.setPinned(false);
         Compilation compilation = CompilationMapper.toCompilation(newCompilationDto, events);
         try {
             compRepository.saveAndFlush(compilation);
@@ -66,7 +69,7 @@ public class CompilationServiceImpl implements CompilationService {
         if (newCompilationDto.getPinned() != null) compilation.setPinned(newCompilationDto.getPinned());
         if (newCompilationDto.getTitle() != null) compilation.setTitle(newCompilationDto.getTitle());
         log.info("Compilation with id '{}' updated", compilation.getId());
-        compRepository.saveAndFlush(compilation);
+        compRepository.save(compilation);
         return CompilationMapper.toCompilationDto(compilation);
     }
 

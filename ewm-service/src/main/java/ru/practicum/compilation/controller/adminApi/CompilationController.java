@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.service.CompilationService;
+import ru.practicum.transfer.New;
+import ru.practicum.transfer.Update;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
 import static ru.practicum.constant.Constant.REQUEST_DELETE_LOG;
 import static ru.practicum.constant.Constant.REQUEST_PATCH_LOG;
@@ -34,7 +35,7 @@ public class CompilationController {
 
     @PostMapping
     public ResponseEntity<CompilationDto> create(
-            @RequestBody @Valid NewCompilationDto newCompilationDto,
+            @RequestBody @Validated(New.class) NewCompilationDto newCompilationDto,
             HttpServletRequest request) {
         log.info(REQUEST_POST_LOG, request.getRequestURI());
         return new ResponseEntity<>(compilationService.create(newCompilationDto), HttpStatus.CREATED);
@@ -49,7 +50,7 @@ public class CompilationController {
 
     @PatchMapping("/{compId}")
     public ResponseEntity<CompilationDto> update(
-            @RequestBody  NewCompilationDto newCompilationDto,
+            @RequestBody @Validated(Update.class) NewCompilationDto newCompilationDto,
             @PathVariable Long compId, HttpServletRequest request) {
         log.info(REQUEST_PATCH_LOG, request.getRequestURI());
         return new ResponseEntity<>(compilationService.update(compId, newCompilationDto), HttpStatus.OK);
