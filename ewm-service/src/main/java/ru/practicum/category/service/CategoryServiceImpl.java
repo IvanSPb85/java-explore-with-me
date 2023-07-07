@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +12,7 @@ import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.dto.CategoryMapper;
 import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.model.Category;
-import ru.practicum.exception.DataBaseException;
+import ru.practicum.exception.ConflictException;
 
 import java.security.InvalidParameterException;
 import java.util.Collection;
@@ -33,10 +32,10 @@ public class CategoryServiceImpl implements CategoryService {
         CategoryDto categoryDto;
         try {
             categoryDto = CategoryMapper.toCategoryDto(categoryRepository.save(category));
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException exception) {
             log.warn("Category with name = {} already exists", category.getName());
-            throw new DataBaseException(String.format("Category with name = %s already exists",
-                    category.getName()));
+            throw new ConflictException(String.format("Category with name = %s already exists",
+                    category.getName()), exception);
         }
         log.info("Category with id = {} and name = {} successful created",
                 category.getId(), category.getName());
@@ -67,10 +66,10 @@ public class CategoryServiceImpl implements CategoryService {
         category.setName(newCategoryDto.getName());
         try {
             categoryRepository.saveAndFlush(category);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException exception) {
             log.warn("Category with name = {} already exists", category.getName());
-            throw new DataBaseException(String.format("Category with name = %s already exists",
-                    category.getName()));
+            throw new ConflictException(String.format("Category with name = %s already exists",
+                    category.getName()), exception);
         }
         log.info("Category with id = {} and name = {} successful update",
                 category.getId(), category.getName());

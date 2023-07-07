@@ -139,15 +139,18 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId).orElseThrow();
         if (!event.getState().equals(StateEvent.PENDING))
             throw new ConflictException(String.format("Event can't update: current state %s", event.getState()));
-        if (request.getStateAction().equals(AdminStateAction.REJECT_EVENT)
-                && event.getState().equals(StateEvent.PUBLISHED))
-            throw new ConflictException(String.format("Event can't reject: current state %S", event.getState()));
-        if (request.getStateAction().equals(AdminStateAction.PUBLISH_EVENT)) {
-            event.setState(StateEvent.PUBLISHED);
-            event.setPublishedOn(LocalDateTime.now());
+        if (request.getStateAction() != null) {
+            if (request.getStateAction().equals(AdminStateAction.REJECT_EVENT)
+                    && event.getState().equals(StateEvent.PUBLISHED))
+                throw new ConflictException(String.format("Event can't reject: current state %S", event.getState()));
+            if (request.getStateAction().equals(AdminStateAction.PUBLISH_EVENT)) {
+                event.setState(StateEvent.PUBLISHED);
+                event.setPublishedOn(LocalDateTime.now());
+            }
+            if (request.getStateAction().equals(AdminStateAction.REJECT_EVENT))
+                event.setState(StateEvent.CANCELED);
         }
-        if (request.getStateAction().equals(AdminStateAction.REJECT_EVENT))
-            event.setState(StateEvent.CANCELED);
+
         Event editEvent = eventRepository.saveAndFlush(updateEvent(event, request));
         log.info("Event with id = {} update", editEvent.getId());
         return EventMapper.toEventFullDto(editEvent);
@@ -233,7 +236,7 @@ public class EventServiceImpl implements EventService {
     }
 
 
-    private void checkRequestStatus(Request request) {
+    private void checkRequestStatus(Request request) throws ConflictException {
         if (!request.getStatus().equals(StatusRequest.PENDING))
             throw new ConflictException(String.format("Request can't update, because request has status %s",
                     request.getStatus().toString()));
@@ -250,7 +253,7 @@ public class EventServiceImpl implements EventService {
 
     private void checkEventDate(LocalDateTime dateTime, long hours) {
         if (dateTime.minusHours(hours).isBefore(LocalDateTime.now()))
-            throw new ConflictException(
+            throw new DataBaseException(
                     String.format("eventDate can't be earlier than %d hours before current moment", hours));
     }
 
@@ -262,8 +265,8 @@ public class EventServiceImpl implements EventService {
         if (newEvent.getAnnotation() != null) event.setAnnotation(newEvent.getAnnotation());
         if (newEvent.getDescription() != null) event.setDescription(newEvent.getDescription());
         if (newEvent.getLocation() != null) event.setLocation(newEvent.getLocation());
-        if (newEvent.getPaid() != null) event.setPaid(newEvent.getPaid());
-        if (newEvent.getParticipantLimit() != null) event.setParticipantLimit(newEvent.getParticipantLimit());
+        if (newEvent.getPaid() != null && newEvent.getPaid()) event.setPaid(newEvent.getPaid());
+        if (newEvent.getParticipantLimit() != null && newEvent.getParticipantLimit() != 0) event.setParticipantLimit(newEvent.getParticipantLimit());
         if (newEvent.getRequestModeration() != null) event.setRequestModeration(newEvent.getRequestModeration());
         if (newEvent.getTitle() != null) event.setTitle(newEvent.getTitle());
         return event;

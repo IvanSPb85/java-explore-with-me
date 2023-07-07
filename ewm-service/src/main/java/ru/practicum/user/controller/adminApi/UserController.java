@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.service.UserService;
@@ -36,7 +37,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> create(@RequestBody @Valid NewUserRequest newUserRequest,
-                                          HttpServletRequest request) {
+                                          HttpServletRequest request) throws ConflictException {
         log.info(REQUEST_POST_LOG, request.getRequestURI());
         return new ResponseEntity<>(userService.create(newUserRequest), HttpStatus.CREATED);
     }

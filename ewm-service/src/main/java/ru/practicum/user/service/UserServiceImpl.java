@@ -7,16 +7,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.user.dao.UserRepository;
+import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.dto.UserMapper;
-import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.model.User;
-import ru.practicum.exception.DataBaseException;
 
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,9 +34,8 @@ public class UserServiceImpl implements UserService {
         try {
             userDto = UserMapper.toUserDto(userRepository.save(user));
         } catch (DataIntegrityViolationException e) {
-            log.warn("User with email = {} already exists", user.getEmail());
-            throw new DataBaseException(String.format("User with email = %s already exists",
-                    user.getEmail()));
+            throw new ConflictException(String.format("User with email = %s already exists",
+                    user.getEmail()), e);
         }
         log.info("User with id = {} and email = {} successful created",
                 userDto.getId(), userDto.getEmail());
@@ -65,8 +64,7 @@ public class UserServiceImpl implements UserService {
             userRepository.deleteById(userId);
             log.info("User with id = {} deleted", userId);
         } else {
-            log.warn("Deleting a user with id = {} is not possible, user not found", userId);
-            throw new InvalidParameterException(String.format(
+            throw new NoSuchElementException(String.format(
                     "Deleting a user with id = %s is not possible, user not found", userId));
         }
     }

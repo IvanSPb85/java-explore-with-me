@@ -32,7 +32,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     @Transactional
-    public CompilationDto create(NewCompilationDto newCompilationDto) {
+    public CompilationDto create(NewCompilationDto newCompilationDto) throws ConflictException {
         Set<Event> events = new HashSet<>();
         if (newCompilationDto.getEvents() != null) {
             newCompilationDto.getEvents().forEach(eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));

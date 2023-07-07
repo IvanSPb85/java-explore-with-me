@@ -38,7 +38,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Transactional
     @Override
-    public ParticipationRequestDto create(long userId, long eventId) {
+    public ParticipationRequestDto create(long userId, long eventId) throws ConflictException {
         User requester = userRepository.findById(userId).orElseThrow();
         Event event = eventRepository.findById(eventId).orElseThrow();
         Request request = RequestMapper.toRequest(event, requester);
@@ -50,6 +50,7 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("The event has reached the limit of participation requests");
         if (!event.isRequestModeration() | event.getParticipantLimit() == 0) {
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            eventRepository.save(event);
             request.setStatus(StatusRequest.CONFIRMED);
         }
         try {

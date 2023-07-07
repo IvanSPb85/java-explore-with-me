@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.service.RequestService;
 
@@ -39,7 +40,7 @@ public class RequestController {
     @PostMapping
     public ResponseEntity<ParticipationRequestDto> create(@PathVariable long userId,
                                                           @RequestParam long eventId,
-                                                          HttpServletRequest request) {
+                                                          HttpServletRequest request) throws ConflictException {
         log.info(REQUEST_POST_LOG, request.getRequestURI());
         return new ResponseEntity<>(requestService.create(userId, eventId), HttpStatus.CREATED);
     }
