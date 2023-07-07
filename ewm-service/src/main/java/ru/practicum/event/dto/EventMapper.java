@@ -2,10 +2,10 @@ package ru.practicum.event.dto;
 
 import ru.practicum.category.dto.CategoryMapper;
 import ru.practicum.category.model.Category;
+import ru.practicum.constant.StateEvent;
 import ru.practicum.event.model.Event;
 import ru.practicum.user.dto.UserMapper;
 import ru.practicum.user.model.User;
-import ru.practicum.constant.StateEvent;
 
 import java.time.LocalDateTime;
 
@@ -32,9 +32,11 @@ public class EventMapper {
                 .eventDate(newEventDto.getEventDate())
                 .initiator(initiator)
                 .location(newEventDto.getLocation())
-                .paid(newEventDto.getPaid())
-                .participantLimit(newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.getRequestModeration())
+                .paid(newEventDto.getPaid() != null ? newEventDto.getPaid() : false)
+                .participantLimit(newEventDto.getParticipantLimit() != null
+                        ? newEventDto.getParticipantLimit() : 0)
+                .requestModeration(newEventDto.getRequestModeration() != null
+                        ? newEventDto.getRequestModeration() : true)
                 .state(StateEvent.PENDING)
                 .title(newEventDto.getTitle())
                 .views(0L).build();
