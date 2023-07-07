@@ -100,10 +100,10 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateByUser(long ownerId, long eventId, UpdateEventUserRequest request) {
         Event event = eventRepository.findById(eventId).orElseThrow();
         if (event.getState().equals(StateEvent.PUBLISHED)) {
-            throw new DataBaseException(String.format("Event with id = %d has no available for update", eventId));
+            throw new ConflictException(String.format("Event with id = %d has no available for update", eventId));
         }
         if (event.getInitiator().getId() != ownerId)
-            throw new DataBaseException(String.format("User with id = %d has no available event", ownerId));
+            throw new ConflictException(String.format("User with id = %d has no available event", ownerId));
         if (request.getEventDate() != null) {
             checkEventDate(request.getEventDate(), 2);
             event.setEventDate(request.getEventDate());
@@ -180,6 +180,7 @@ public class EventServiceImpl implements EventService {
         if (request.getStatus().equals(StatusRequestUpdate.REJECTED)) {
             // для каждой заявки обновляем статус на REJECTED
             requests.forEach(req -> updateRequestStatus(req, StatusRequest.REJECTED, rejectedRequests));
+            // иначе если новый статус для заявок на участие в событии CONFIRMED
         } else if (request.getStatus().equals(StatusRequestUpdate.CONFIRMED)) {
             // если для события лимит заявок равен 0 или отключена пре-модерация заявок
             if (event.getParticipantLimit() == 0 | !event.isRequestModeration()) {
@@ -206,7 +207,7 @@ public class EventServiceImpl implements EventService {
                     throw new ConflictException("The limit on applications for this event has been reached");
             }
         }
-
+        requestRepository.saveAll(requests);
         eventRepository.save(event);
         return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
     }

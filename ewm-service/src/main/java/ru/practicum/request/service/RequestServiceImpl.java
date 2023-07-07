@@ -46,9 +46,9 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("The initiator of the event cannot add a request to participate in his event");
         if (!event.getState().equals(StateEvent.PUBLISHED))
             throw new ConflictException("You cannot participate in an unpublished event");
-        if (event.getConfirmedRequests() == event.getParticipantLimit() && event.getParticipantLimit() != 0)
+        if (event.getConfirmedRequests() == event.getParticipantLimit() && event.getParticipantLimit() != 0L)
             throw new ConflictException("The event has reached the limit of participation requests");
-        if (!event.isRequestModeration() | event.getParticipantLimit() == 0) {
+        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
             eventRepository.save(event);
             request.setStatus(StatusRequest.CONFIRMED);

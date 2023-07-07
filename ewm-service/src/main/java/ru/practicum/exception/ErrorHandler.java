@@ -22,6 +22,7 @@ import ru.practicum.user.controller.adminApi.UserController;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
@@ -81,9 +82,23 @@ public class ErrorHandler {
 //                .timestamp(LocalDateTime.now()).build();
 //    }
 
-    @ExceptionHandler({ConflictException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleConflict(final RuntimeException e) {
+    public ApiError handleConflict(final ConflictException e) {
+        log.error("Error: " + e.getLocalizedMessage());
+        StringWriter out = new StringWriter();
+        e.printStackTrace(new PrintWriter(out));
+        String stackTrace = out.toString();
+        return ApiError.builder()
+                .reason(e.getLocalizedMessage())
+                .message(e.getMessage())
+                .status(HttpStatus.CONFLICT)
+                .error(stackTrace).build();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleConflict(final DataIntegrityViolationException e) {
         log.error("Error: " + e.getLocalizedMessage());
         StringWriter out = new StringWriter();
         e.printStackTrace(new PrintWriter(out));
@@ -110,8 +125,36 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleBadRequest(final DataBaseException e) {
+        log.error("Error: " + e.getLocalizedMessage());
+        StringWriter out = new StringWriter();
+        e.printStackTrace(new PrintWriter(out));
+        String stackTrace = out.toString();
+        return ApiError.builder()
+                .reason(e.getLocalizedMessage())
+                .message(e.getMessage())
+                .status(HttpStatus.BAD_REQUEST)
+                .error(stackTrace).build();
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFound(final NoSuchElementException e) {
+        log.error("Error: " + e.getLocalizedMessage());
+        StringWriter out = new StringWriter();
+        e.printStackTrace(new PrintWriter(out));
+        String stackTrace = out.toString();
+        return ApiError.builder()
+                .reason(e.getLocalizedMessage())
+                .message(e.getMessage())
+                .status(HttpStatus.NOT_FOUND)
+                .error(stackTrace).build();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleNotFound(final InvalidParameterException e) {
         log.error("Error: " + e.getLocalizedMessage());
         StringWriter out = new StringWriter();
         e.printStackTrace(new PrintWriter(out));
