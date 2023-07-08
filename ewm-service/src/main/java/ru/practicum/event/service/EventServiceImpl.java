@@ -1,5 +1,7 @@
 package ru.practicum.event.service;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,9 +26,11 @@ import ru.practicum.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.NewEvent;
 import ru.practicum.event.dto.NewEventDto;
+import ru.practicum.event.dto.PredicateParam;
 import ru.practicum.event.dto.UpdateEventAdminRequest;
 import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.event.model.Event;
+import ru.practicum.event.model.QEvent;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.DataBaseException;
 import ru.practicum.request.dao.RequestRepository;
@@ -126,10 +130,11 @@ public class EventServiceImpl implements EventService {
                                                       LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                                       Integer from, Integer size) {
         if (from > 0 && size > 0) from = from / size;
-        Collection<Event> events = eventRepository.findEventsByParams(users, states, categories, rangeStart,
-                rangeEnd, PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "id")));
-        log.info("Found {} events", events.size());
-        return events.stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
+//        Collection<Event> events = eventRepository.findEventsByParams(users, states, categories, rangeStart,
+//                rangeEnd, PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "id")));
+//        log.info("Found {} events", events.size());
+//        return events.stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
+        return null;
     }
 
     @Transactional
@@ -213,12 +218,48 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Collection<EventShortDto> findAllByParam(String text, List<Long> categories, Boolean paid,
-                                                    LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                                    Boolean onlyAvailable, String sort,
+    public Collection<EventShortDto> findAllByParam(PredicateParam param,
                                                     Integer from, Integer size, HttpServletRequest request) {
-        return eventRepository.findAll().stream().map(EventMapper::toEventShortDto).collect(Collectors.toList()); // todo заглушка
+        Predicate predicate = buildQuery(param);
+        Iterable<Event> events = eventRepository.findAll(predicate,
+                PageRequest.of(from, size, Sort.by(Sort.Direction.DESC, "id")));
+        Collection<Event> result = new ArrayList<>();
+        events.forEach(result::add);
+        return result.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList()); // todo Sort
     }
+
+    public Collection<EventFullDto> findAllByParams(PredicateParam param,
+                                                    Integer from, Integer size) {
+
+
+        Iterable<Event> events = eventRepository.findAll(buildQuery(param),
+                PageRequest.of(from, size, Sort.by(Sort.Direction.DESC, "id")));
+        Collection<Event> result = new ArrayList<>();
+        events.forEach(result::add);
+        return result.stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
+    }
+
+    private Predicate buildQuery(PredicateParam param) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if (param.getRangeEnd() != null && param.getRangeStart() != null
+                && param.getRangeStart().isAfter(param.getRangeEnd()))
+            throw  new DataBaseException("RangeStart can't be before RangeEnd");
+
+
+        if (param.getText() != null) builder.and(QEvent.event.annotation.containsIgnoreCase(param.getText())
+                .or(QEvent.event.description.containsIgnoreCase(param.getText())));
+        if (param.getPaid() != null) builder.and(QEvent.event.paid.eq(param.getPaid()));
+        if (param.getUsers() != null) builder.and(QEvent.event.initiator.id.in(param.getUsers()));
+        if (param.getStates() != null) builder.and(QEvent.event.state.in(param.getStates()));
+        if (param.getCategories() != null) builder.and(QEvent.event.category.id.in(param.getCategories()));
+        if (param.getRangeStart() == null) builder.and(QEvent.event.eventDate
+                .after(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)));
+        else builder.and(QEvent.event.eventDate.after(param.getRangeStart()));
+        if (param.getRangeEnd() != null) builder.and(QEvent.event.eventDate.before(param.getRangeEnd()));
+        if (param.getOnlyAvailable() != null && param.getOnlyAvailable()) builder.and(QEvent.event.confirmedRequests.lt(QEvent.event.participantLimit));
+        return builder.getValue();
+    }
+
 
     @Override
     public EventFullDto findById(long eventId, HttpServletRequest request) {
@@ -266,8 +307,9 @@ public class EventServiceImpl implements EventService {
         if (newEvent.getAnnotation() != null) event.setAnnotation(newEvent.getAnnotation());
         if (newEvent.getDescription() != null) event.setDescription(newEvent.getDescription());
         if (newEvent.getLocation() != null) event.setLocation(newEvent.getLocation());
-        if (newEvent.getPaid() != null && newEvent.getPaid()) event.setPaid(newEvent.getPaid());
-        if (newEvent.getParticipantLimit() != null && newEvent.getParticipantLimit() != 0) event.setParticipantLimit(newEvent.getParticipantLimit());
+        if (newEvent.getPaid() != null) event.setPaid(newEvent.getPaid());
+        if (newEvent.getParticipantLimit() != null && newEvent.getParticipantLimit() != 0)
+            event.setParticipantLimit(newEvent.getParticipantLimit());
         if (newEvent.getRequestModeration() != null) event.setRequestModeration(newEvent.getRequestModeration());
         if (newEvent.getTitle() != null) event.setTitle(newEvent.getTitle());
         return event;

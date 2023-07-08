@@ -6,6 +6,7 @@ import ru.practicum.event.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.NewEventDto;
+import ru.practicum.event.dto.PredicateParam;
 import ru.practicum.event.dto.UpdateEventAdminRequest;
 import ru.practicum.event.dto.UpdateEventUserRequest;
 import ru.practicum.request.dto.ParticipationRequestDto;
@@ -35,10 +36,10 @@ public interface EventService {
 
     EventRequestStatusUpdateResult updateRequests(long userId, long eventId, EventRequestStatusUpdateRequest request);
 
-    Collection<EventShortDto> findAllByParam(String text, List<Long> categories, Boolean paid,
-                                             LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                             Boolean onlyAvailable, String sort,
+    Collection<EventShortDto> findAllByParam(PredicateParam param,
                                              Integer from, Integer size, HttpServletRequest request);
 
     EventFullDto findById(long eventId, HttpServletRequest request);
+
+    Collection<EventFullDto> findAllByParams(PredicateParam param, Integer from, Integer size);
 }

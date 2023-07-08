@@ -2,6 +2,7 @@ package ru.practicum.event.controller.publicApi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import ru.practicum.StatsClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
+import ru.practicum.event.dto.PredicateParam;
 import ru.practicum.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,16 +40,23 @@ public class PublicEventController {
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) Boolean paid,
-            @RequestParam(required = false) LocalDateTime rangeStart,
-            @RequestParam(required = false) LocalDateTime rangeEnd,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
-            @RequestParam(defaultValue = "EVENT_DATE") String sort,
+            @RequestParam(defaultValue = "EVENT_DATE") String sort, // todo default
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request.getRequestURI());
-        return new ResponseEntity<>(eventService.findAllByParam(text, categories, paid, rangeStart, rangeEnd,
-                onlyAvailable, sort, from, size, request), HttpStatus.OK);
+        PredicateParam param = PredicateParam.builder()
+                .text(text)
+                .categories(categories)
+                .paid(paid)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .onlyAvailable(onlyAvailable)
+                .sort(sort).build();
+        return new ResponseEntity<>(eventService.findAllByParam(param, from, size, request), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

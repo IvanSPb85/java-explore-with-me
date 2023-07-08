@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.constant.StateEvent;
 import ru.practicum.event.dto.EventFullDto;
+import ru.practicum.event.dto.PredicateParam;
 import ru.practicum.event.dto.UpdateEventAdminRequest;
 import ru.practicum.event.service.EventService;
 
@@ -47,8 +48,14 @@ public class AdminEventController {
             @RequestParam(defaultValue = "10") Integer size,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request.getRequestURI());
-        return new ResponseEntity<>(eventService.findEventsByParam(users, states, categories,
-                rangeStart, rangeEnd, from, size), HttpStatus.OK);
+        PredicateParam param = PredicateParam.builder()
+                .users(users)
+                .states(states)
+                .categories(categories)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd).build();
+
+        return new ResponseEntity<>(eventService.findAllByParams(param, from, size), HttpStatus.OK);
     }
 
     @PatchMapping("/{eventId}")
