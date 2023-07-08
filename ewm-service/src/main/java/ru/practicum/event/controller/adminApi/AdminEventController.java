@@ -54,8 +54,7 @@ public class AdminEventController {
                 .categories(categories)
                 .rangeStart(rangeStart)
                 .rangeEnd(rangeEnd).build();
-
-        return new ResponseEntity<>(eventService.findAllByParams(param, from, size), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.findAllByParamForAdmin(param, from, size), HttpStatus.OK);
     }
 
     @PatchMapping("/{eventId}")

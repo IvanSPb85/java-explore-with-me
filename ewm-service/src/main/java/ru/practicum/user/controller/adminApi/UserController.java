@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.dto.NewUserRequest;
+import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;

@@ -5,5 +5,4 @@ public class Constant {
     public static final String REQUEST_POST_LOG = "A request to the endpoint was received: 'POST {}";
     public static final String REQUEST_PATCH_LOG = "A request to the endpoint was received: 'PATCH {}";
     public static final String REQUEST_DELETE_LOG = "A request to the endpoint was received: 'DELETE {}";
-    public static final String REQUEST_HEADER_USER_ID = "X-Sharer-User-Id";
 }

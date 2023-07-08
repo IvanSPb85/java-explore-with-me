@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.transfer.New;
 import ru.practicum.transfer.Update;
-//import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -17,7 +16,7 @@ import java.util.Set;
 public class NewCompilationDto {
     private Set<Long> events;
     private Boolean pinned;
-    @NotBlank (groups = {New.class})
+    @NotBlank(groups = {New.class})
     @Size(min = 1, max = 50, groups = {New.class, Update.class})
     private String title;
 }

@@ -21,4 +21,5 @@ public class PredicateParam {
     private Boolean paid;
     private Boolean onlyAvailable;
     private String sort;
+    private StateEvent state;
 }

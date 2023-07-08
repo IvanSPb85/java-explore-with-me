@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class NewEventDto extends NewEvent{
+public class NewEventDto extends NewEvent {
     @Length(min = 20, max = 2000)
     @NotBlank
     private String annotation;

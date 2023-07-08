@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.StatsClient;
+import ru.practicum.constant.StateEvent;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
@@ -32,8 +33,8 @@ import static ru.practicum.constant.Constant.REQUEST_GET_LOG;
 public class PublicEventController {
     private final EventService eventService;
     private final StatsClient statsClient;
-
     private static final String SERViCE_NAME = "ewm-service";
+
 
     @GetMapping
     public ResponseEntity<Collection<EventShortDto>> findAllByParam(
@@ -43,31 +44,37 @@ public class PublicEventController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
-            @RequestParam(defaultValue = "EVENT_DATE") String sort, // todo default
+            @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request.getRequestURI());
+        sendStats(request);
         PredicateParam param = PredicateParam.builder()
                 .text(text)
                 .categories(categories)
                 .paid(paid)
-                .rangeStart(rangeStart)
-                .rangeEnd(rangeEnd)
+                .rangeStart(rangeStart != null ? rangeStart : LocalDateTime.now())
+                .rangeEnd(rangeEnd != null ? rangeEnd : LocalDateTime.now().plusYears(1000))
                 .onlyAvailable(onlyAvailable)
+                .state(StateEvent.PUBLISHED)
                 .sort(sort).build();
-        return new ResponseEntity<>(eventService.findAllByParam(param, from, size, request), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.findAllByParamForPublic(param, from, size, request), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<EventFullDto> findById(@PathVariable long id,
                                                  HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request.getRequestURI());
+        sendStats(request);
+        return new ResponseEntity<>(eventService.findById(id, request), HttpStatus.OK);
+    }
+
+    private void sendStats(HttpServletRequest request) {
         statsClient.create(EndpointHitDto.builder()
                 .app(SERViCE_NAME)
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
                 .timestamp(LocalDateTime.now()).build());
-        return new ResponseEntity<>(eventService.findById(id, request), HttpStatus.OK);
     }
 }

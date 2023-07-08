@@ -3,7 +3,8 @@ package ru.practicum.compilation.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +17,13 @@ import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.exception.ConflictException;
 
-import java.util.ArrayList;
+import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static ru.practicum.transfer.PageSort.getPageable;
 
 @Service
 @Slf4j
@@ -35,14 +38,16 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto create(NewCompilationDto newCompilationDto) throws ConflictException {
         Set<Event> events = new HashSet<>();
         if (newCompilationDto.getEvents() != null) {
-            newCompilationDto.getEvents().forEach(eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));
+            newCompilationDto.getEvents().forEach(
+                    eventId -> events.add(eventRepository.findById(eventId).orElseThrow()));
         }
         if (newCompilationDto.getPinned() == null) newCompilationDto.setPinned(false);
         Compilation compilation = CompilationMapper.toCompilation(newCompilationDto, events);
         try {
             compRepository.saveAndFlush(compilation);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(String.format("The name for title %s already exists", compilation.getTitle()));
+            throw new ConflictException(
+                    String.format("The name for title '%s' already exists", compilation.getTitle()));
         }
         log.info("Compilation with id '{}' and title '{}' created", compilation.getId(), compilation.getTitle());
         return CompilationMapper.toCompilationDto(compilation);
@@ -51,8 +56,12 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional
     public void delete(Long compId) {
-        Compilation compilation = compRepository.findById(compId).orElseThrow();
-        compRepository.deleteById(compId);
+        try {
+            compRepository.deleteById(compId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new InvalidParameterException(String.format(
+                    "Deleting a compilation with id = '%d' is not possible, compilation not found", compId));
+        }
         log.info("Compilation with id '{}' deleted", compId);
     }
 
@@ -82,12 +91,11 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public Collection<CompilationDto> findAllByParam(Boolean pinned, Integer from, Integer size) {
-        if (from > 0 && size > 0) from = from / size;
-        Collection<Compilation> compilations = new ArrayList<>();
-        if (pinned != null) compilations = compRepository.findAllByPinned(pinned,
-                PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "Id")));
-        else compilations = compRepository.findAll(PageRequest.of(from, size,
-                Sort.by(Sort.Direction.ASC, "Id"))).toList();
+        Pageable pageable = getPageable(from, size, Sort.by(Sort.Direction.ASC, "id"));
+        Collection<Compilation> compilations;
+        if (pinned != null) compilations = compRepository.findAllByPinned(pinned, pageable);
+        else compilations = compRepository.findAll(pageable).toList();
+        log.info("Found '{}' compilations", compilations.size());
         return compilations.stream().map(CompilationMapper::toCompilationDto).collect(Collectors.toList());
     }
 }

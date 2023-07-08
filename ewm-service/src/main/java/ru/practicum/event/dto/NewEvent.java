@@ -21,9 +21,9 @@ public abstract class NewEvent {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
     private Location location;
-    private Boolean paid ;
+    private Boolean paid;
     private Integer participantLimit;
-    private Boolean requestModeration ;
+    private Boolean requestModeration;
     @Length(min = 3, max = 120)
     private String title;
 }

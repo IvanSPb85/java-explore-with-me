@@ -2,7 +2,6 @@ package ru.practicum.compilation.controller.publicApi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.compilation.dto.CompilationDto;
-import ru.practicum.compilation.model.Compilation;
 import ru.practicum.compilation.service.CompilationService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +26,7 @@ public class PublicCompilationController {
     private final CompilationService compilationService;
 
     @GetMapping
-    public ResponseEntity<Collection<CompilationDto>> findAllByParams(
+    public ResponseEntity<Collection<CompilationDto>> findAllByParam(
             @RequestParam(required = false) Boolean pinned,
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size,
