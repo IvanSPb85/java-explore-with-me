@@ -7,7 +7,7 @@ import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
-public class RequestMapper  {
+public class RequestMapper {
     public static Request toRequest(Event event, User requester) {
         return Request.builder()
                 .created(LocalDateTime.now())
@@ -16,7 +16,7 @@ public class RequestMapper  {
                 .status(StatusRequest.PENDING).build();
     }
 
-    public static ParticipationRequestDto toParticipationRequestDto (Request request) {
+    public static ParticipationRequestDto toParticipationRequestDto(Request request) {
         return ParticipationRequestDto.builder()
                 .created(request.getCreated())
                 .event(request.getEvent().getId())

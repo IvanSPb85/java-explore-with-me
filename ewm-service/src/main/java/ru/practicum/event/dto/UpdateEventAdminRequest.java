@@ -8,6 +8,6 @@ import ru.practicum.constant.AdminStateAction;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class UpdateEventAdminRequest extends NewEvent{
-   private AdminStateAction stateAction;
+public class UpdateEventAdminRequest extends NewEvent {
+    private AdminStateAction stateAction;
 }
