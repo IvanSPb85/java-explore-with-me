@@ -179,7 +179,7 @@ public class EventServiceImpl implements EventService {
             // иначе если новый статус для заявок на участие в событии CONFIRMED
         } else if (request.getStatus().equals(StatusRequestUpdate.CONFIRMED)) {
             // если для события лимит заявок равен 0 или отключена пре-модерация заявок
-            if (event.getParticipantLimit() == 0 | !event.isRequestModeration()) {
+            if (event.getParticipantLimit() == 0 || !event.isRequestModeration()) {
                 // для каждой заявки обновляем статус на CONFIRMED
                 requests.forEach(req -> updateRequestStatus(req, StatusRequest.CONFIRMED, confirmedRequests));
                 // инкрементируем у события число подтвержденных заявок
