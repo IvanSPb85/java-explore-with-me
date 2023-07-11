@@ -21,8 +21,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+
+import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
 
 @Entity
 @Table(name = "events")
@@ -37,10 +38,10 @@ public class Event {
     @JoinColumn(name = "category_id")
     private Category category;
     private long confirmedRequests;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
     private LocalDateTime createdOn;
     private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
     private LocalDateTime eventDate;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,12 +50,11 @@ public class Event {
     @JoinColumn(name = "initiator_id")
     private User initiator;
     @Embedded
-    @NotNull
     private Location location;
     @Column(name = "is_paid")
     private boolean paid;
     private int participantLimit;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
     private LocalDateTime publishedOn;
     @Column(name = "is_requestModeration")
     private boolean requestModeration;

@@ -9,6 +9,8 @@ import ru.practicum.event.model.Location;
 
 import java.time.LocalDateTime;
 
+import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -18,7 +20,7 @@ public abstract class NewEvent {
     private Long category;
     @Length(min = 20, max = 7000)
     private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
     private LocalDateTime eventDate;
     private Location location;
     private Boolean paid;

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
@@ -20,6 +20,7 @@ import ru.practicum.user.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import static ru.practicum.constant.Constant.REQUEST_POST_LOG;
 
 @Slf4j
 @RequiredArgsConstructor
-@RestController
+@Controller
 @Validated
 @RequestMapping("/admin/users")
 public class UserController {
@@ -45,8 +46,8 @@ public class UserController {
     @GetMapping
     public ResponseEntity<Collection<UserDto>> findUsers(
             @RequestParam(required = false) List<Long> ids,
-            @RequestParam(required = false, defaultValue = "0") Integer from,
-            @RequestParam(required = false, defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @PositiveOrZero Integer size,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request.getRequestURI());
         return new ResponseEntity<>(userService.findUsersByParam(ids, from, size), HttpStatus.OK);

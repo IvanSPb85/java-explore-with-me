@@ -50,6 +50,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
 import static ru.practicum.transfer.PageSort.getPageable;
 
 @Service
@@ -62,7 +63,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final StatsClient statsClient;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_MM_SS);
     private static final Integer TWO_HOURS_BEFORE_EVENT = 2;
     private static final Integer ONE_HOURS_BEFORE_EVENT = 1;
 
@@ -70,8 +71,10 @@ public class EventServiceImpl implements EventService {
     @Override
     public Collection<EventShortDto> findEventsByOwner(long ownerId, Integer from, Integer size) {
         Pageable pageable = getPageable(from, size, Sort.by(Sort.Direction.ASC, "id"));
-        Collection<Event> events = eventRepository.findAllByOwner(ownerId, pageable);
-        return events.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList());
+        Iterable<Event> events = eventRepository.findAll(QEvent.event.initiator.id.eq(ownerId), pageable);
+        Collection<Event> result = new ArrayList<>();
+        events.forEach(result::add);
+        return result.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList());
     }
 
     @Transactional

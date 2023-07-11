@@ -20,6 +20,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
+import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
+
 @Entity
 @Table(name = "requests")
 @AllArgsConstructor
@@ -28,7 +30,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class Request {
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
     private LocalDateTime created;
     @ManyToOne
     private Event event;

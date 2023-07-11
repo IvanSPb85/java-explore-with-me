@@ -11,6 +11,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
+import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -24,7 +26,7 @@ public class NewEventDto extends NewEvent {
     @NotBlank
     private String description;
     @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
     private LocalDateTime eventDate;
     @NotNull
     private Location location;

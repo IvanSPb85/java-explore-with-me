@@ -1,5 +1,6 @@
 package ru.practicum.event.dto;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.category.dto.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.constant.StateEvent;
@@ -9,8 +10,9 @@ import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
+@UtilityClass
 public class EventMapper {
-    public static EventShortDto toEventShortDto(Event event) {
+    public EventShortDto toEventShortDto(Event event) {
         return EventShortDto.builder()
                 .annotation(event.getAnnotation())
                 .category(CategoryMapper.toCategoryDto(event.getCategory()))
@@ -23,7 +25,7 @@ public class EventMapper {
                 .views(event.getViews()).build();
     }
 
-    public static Event toEvent(NewEventDto newEventDto, Category category, User initiator) {
+    public Event toEvent(NewEventDto newEventDto, Category category, User initiator) {
         return Event.builder()
                 .annotation(newEventDto.getAnnotation())
                 .category(category)
@@ -42,21 +44,23 @@ public class EventMapper {
                 .views(0L).build();
     }
 
-    public static EventFullDto toEventFullDto(Event event) {
+    public EventFullDto toEventFullDto(Event event) {
         return EventFullDto.builder()
+                .participantsEvent(EventFullDto.ParticipantsEvent.builder()
+                        .confirmedRequests(event.getConfirmedRequests())
+                        .participantLimit(event.getParticipantLimit())
+                        .requestModeration(event.isRequestModeration())
+                        .paid(event.isPaid()).build())
+                .chronologyEvent(EventFullDto.ChronologyEvent.builder()
+                        .createdOn(event.getCreatedOn())
+                        .eventDate(event.getEventDate())
+                        .publishedOn(event.getPublishedOn()).build())
                 .annotation(event.getAnnotation())
                 .category(CategoryMapper.toCategoryDto(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests())
-                .createdOn(event.getCreatedOn())
                 .description(event.getDescription())
-                .eventDate(event.getEventDate())
                 .id(event.getId())
                 .initiator(UserMapper.toUserShortDto(event.getInitiator()))
                 .location(event.getLocation())
-                .paid(event.isPaid())
-                .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn())
-                .requestModeration(event.isRequestModeration())
                 .state(event.getState())
                 .title(event.getTitle())
                 .views(event.getViews()).build();

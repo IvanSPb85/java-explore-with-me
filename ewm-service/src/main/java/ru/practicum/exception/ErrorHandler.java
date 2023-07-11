@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +20,8 @@ import java.io.StringWriter;
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+
+import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
 
 @Slf4j
 @RestControllerAdvice(basePackages = "ru.practicum")
@@ -35,7 +38,7 @@ public class ErrorHandler {
                 .error(getStackTrace(e)).build();
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, ValidDateException.class,
+    @ExceptionHandler({ValidDateException.class,
             ConstraintViolationException.class, IllegalStateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequest(final RuntimeException e) {
@@ -59,6 +62,28 @@ public class ErrorHandler {
                 .error(getStackTrace(e)).build();
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleServerError(final Throwable e) {
+        log.error("Error: " + e.getLocalizedMessage());
+        return ApiError.builder()
+                .reason(e.getLocalizedMessage())
+                .message(e.getCause() != null ? e.getCause().getMessage() : null)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .error(getStackTrace(e)).build();
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleBsdReaThrow(final Throwable e) {
+        log.error("Error: " + e.getLocalizedMessage());
+        return ApiError.builder()
+                .reason(e.getLocalizedMessage())
+                .message(e.getCause() != null ? e.getCause().getMessage() : null)
+                .status(HttpStatus.BAD_REQUEST)
+                .error(getStackTrace(e)).build();
+    }
+
     @Builder
     @Setter
     @Getter
@@ -67,12 +92,12 @@ public class ErrorHandler {
         private String reason;
         private String message;
         @Builder.Default
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
         private LocalDateTime timestamp = LocalDateTime.now();
         private String error;
     }
 
-    private String getStackTrace(RuntimeException e) {
+    private String getStackTrace(Throwable e) {
         StringWriter out = new StringWriter();
         e.printStackTrace(new PrintWriter(out));
         return out.toString();
