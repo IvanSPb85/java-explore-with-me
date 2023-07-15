@@ -50,7 +50,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public CommentDto update(long userId, long commentId, NewCommentDto newCommentDto) {
-        Comment comment = commentRepository.findById(userId).orElseThrow();
+        Comment comment = commentRepository.findById(commentId).orElseThrow();
         if (comment.getCommentator().getId() != userId)
             throw new ConflictException(String.format("User with id '%d' does not have access to comment id '%d'",
                     userId, commentId));
@@ -64,7 +64,7 @@ public class CommentServiceImpl implements CommentService {
     public Collection<CommentDto> findAllByOwner(long userId, Integer from, Integer size) {
         User user = userRepository.findById(userId).orElseThrow();
         Pageable pageable = getPageable(from, size, Sort.by(Sort.Direction.DESC, "posted"));
-        Collection<Comment> comments = commentRepository.findAllById(userId, pageable);
+        Collection<Comment> comments = commentRepository.findAllByCommentatorId(userId, pageable);
         log.info("For User id '{}' found '{}' comments", userId, comments.size());
         return comments.stream().map(CommentMapper::toCommentDto).collect(Collectors.toList());
     }
