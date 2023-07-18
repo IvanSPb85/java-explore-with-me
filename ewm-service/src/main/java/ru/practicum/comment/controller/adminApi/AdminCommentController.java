@@ -51,7 +51,7 @@ public class AdminCommentController {
                 .eventId(eventId)
                 .userId(userId).build();
         log.info(REQUEST_GET_LOG, request);
-        return new ResponseEntity<>(commentService.findAllByAdmin(param), HttpStatus.OK);
+        return ResponseEntity.ok(commentService.findAllByAdmin(param));
     }
 
     @GetMapping("/{commentId}")
@@ -59,6 +59,6 @@ public class AdminCommentController {
             @PathVariable long commentId,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request);
-        return new ResponseEntity<>(commentService.findComment(commentId), HttpStatus.OK);
+        return ResponseEntity.ok(commentService.findComment(commentId));
     }
 }

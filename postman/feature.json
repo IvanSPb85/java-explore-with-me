@@ -4,7 +4,7 @@
 		"name": "feature",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "25696635",
-		"_collection_link": "https://planetary-crater-773751.postman.co/workspace/2580c7fd-725a-4661-83f2-628e02c0b2f9/collection/25696635-93a695cf-df52-4bb4-ba9a-170e39d6f488?action=share&creator=25696635&source=collection_link"
+		"_collection_link": "https://planetary-crater-773751.postman.co/workspace/Team-Workspace~2580c7fd-725a-4661-83f2-628e02c0b2f9/collection/25696635-93a695cf-df52-4bb4-ba9a-170e39d6f488?action=share&creator=25696635&source=collection_link"
 	},
 	"item": [
 		{
@@ -159,7 +159,162 @@
 			"response": []
 		},
 		{
-			"name": "успешное создание комментария 1",
+			"name": "коммент для неопубликованного события - Conflict",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 409\", function () {",
+							"    pm.expect(pm.response.code).to.eql(409);",
+							"});",
+							"pm.test(\"Has comment create response\", function () {",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"text\": \"Отличная тусовка\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/comments/:eventId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"comments",
+						":eventId"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "1"
+						},
+						{
+							"key": "eventId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "публикация события админом",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"});",
+							"pm.test(\"Has comment create response\", function () {",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test(\"Test event 'id' field\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData.id, '\"id\" must be 1').to.eql(1);",
+							"});",
+							"pm.test(\"Test event 'state' field\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('state');",
+							"    pm.expect(jsonData.state, '\"state\" must be \"PUBLISHED\"').to.eql('PUBLISHED');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"stateAction\": \"PUBLISH_EVENT\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/events/:eventId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events",
+						":eventId"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					],
+					"variable": [
+						{
+							"key": "eventId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "успешное создание комментария 1 Copy",
 			"event": [
 				{
 					"listen": "test",

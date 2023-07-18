@@ -49,7 +49,7 @@ public class CommentController {
                                              @RequestBody @Valid NewCommentDto newCommentDto,
                                              HttpServletRequest request) {
         log.info(REQUEST_PATCH_LOG, request);
-        return new ResponseEntity<>(commentService.update(userId, commentId, newCommentDto), HttpStatus.OK);
+        return ResponseEntity.ok(commentService.update(userId, commentId, newCommentDto));
     }
 
     @GetMapping
@@ -59,6 +59,6 @@ public class CommentController {
             @RequestParam(defaultValue = "10") @PositiveOrZero Integer size,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request);
-        return new ResponseEntity<>(commentService.findAllByOwner(userId, from, size), HttpStatus.OK);
+        return ResponseEntity.ok(commentService.findAllByOwner(userId, from, size));
     }
 }

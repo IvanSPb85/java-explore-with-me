@@ -1,11 +1,12 @@
 package ru.practicum.comment.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import ru.practicum.event.model.Event;
 import ru.practicum.user.model.User;
 
@@ -17,8 +18,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
-
-import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
 
 @Entity
 @Table(name = "comments")
@@ -38,6 +37,8 @@ public class Comment {
     @JoinColumn(name = "commentator_id")
     private User commentator;
     private String text;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = YYYY_MM_DD_HH_MM_SS)
+    @CreationTimestamp
     private LocalDateTime posted;
+    @UpdateTimestamp
+    private LocalDateTime updated;
 }

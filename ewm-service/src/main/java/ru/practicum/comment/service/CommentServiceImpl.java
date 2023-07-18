@@ -14,6 +14,7 @@ import ru.practicum.comment.dto.CommentParam;
 import ru.practicum.comment.dto.NewCommentDto;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.model.QComment;
+import ru.practicum.constant.StateEvent;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.exception.ConflictException;
@@ -33,6 +34,8 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private static final Integer ONE_HOUR_AFTER_POSTED = 1;
+
 
     @Transactional
     @Override
@@ -41,6 +44,8 @@ public class CommentServiceImpl implements CommentService {
         Event event = eventRepository.findById(eventId).orElseThrow();
         if (event.getInitiator().getId() == userId)
             throw new ConflictException("User can't commit own event");
+        if (!event.getState().equals(StateEvent.PUBLISHED))
+            throw new ConflictException("You can leave a comment only on the event with status PUBLISHED");
         Comment comment = CommentMapper.toComment(newComment, user, event);
         CommentDto commentDto = CommentMapper.toCommentDto(commentRepository.save(comment));
         log.info("Comment with id '{}' created", commentDto.getId());
@@ -54,6 +59,8 @@ public class CommentServiceImpl implements CommentService {
         if (comment.getCommentator().getId() != userId)
             throw new ConflictException(String.format("User with id '%d' does not have access to comment id '%d'",
                     userId, commentId));
+        if (comment.getPosted().plusHours(ONE_HOUR_AFTER_POSTED).isBefore(comment.getUpdated()))
+            throw new ConflictException(("You can edit a comment within one hour"));
         comment.setText(newCommentDto.getText());
         commentRepository.save(comment);
         log.info("Comment id '{}' updated", commentId);

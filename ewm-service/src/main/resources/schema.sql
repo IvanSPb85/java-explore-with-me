@@ -70,6 +70,7 @@
     commentator_id BIGINT NOT NULL,
     text VARCHAR(10000),
     posted TIMESTAMP WITHOUT TIME ZONE,
+    updated TIMESTAMP WITHOUT TIME ZONE,
     CONSTRAINT pk_comment_id PRIMARY KEY (id),
     CONSTRAINT fk_event_id_comment FOREIGN KEY (event_id) REFERENCES events(id),
     CONSTRAINT fk_commentator_id FOREIGN KEY (commentator_id) REFERENCES users(id)

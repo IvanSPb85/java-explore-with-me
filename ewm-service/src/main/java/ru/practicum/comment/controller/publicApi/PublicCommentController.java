@@ -2,7 +2,6 @@ package ru.practicum.comment.controller.publicApi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -28,12 +27,12 @@ public class PublicCommentController {
     private final CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<Collection<CommentDto>> findAllByAdmin(
+    public ResponseEntity<Collection<CommentDto>> findAllForEvent(
             @PathVariable long eventId,
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @PositiveOrZero Integer size,
             HttpServletRequest request) {
         log.info(REQUEST_GET_LOG, request);
-        return new ResponseEntity<>(commentService.findAllForEvent(eventId, from, size), HttpStatus.OK);
+        return ResponseEntity.ok(commentService.findAllForEvent(eventId, from, size));
     }
 }
