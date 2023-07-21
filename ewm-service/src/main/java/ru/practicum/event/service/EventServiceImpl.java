@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.model.Category;
+import ru.practicum.comment.dao.CommentRepository;
+import ru.practicum.comment.dto.CommentsCounter;
 import ru.practicum.constant.AdminStateAction;
 import ru.practicum.constant.StateEvent;
 import ru.practicum.constant.StatusRequest;
@@ -48,6 +50,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.practicum.constant.Constant.YYYY_MM_DD_HH_MM_SS;
@@ -63,6 +66,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final StatsClient statsClient;
+    private final CommentRepository commentRepository;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_MM_SS);
     private static final Integer TWO_HOURS_BEFORE_EVENT = 2;
     private static final Integer ONE_HOURS_BEFORE_EVENT = 1;
@@ -232,6 +236,8 @@ public class EventServiceImpl implements EventService {
         }
         Pageable pageable = getPageable(from, size, sort);
         Iterable<Event> events = eventRepository.findAll(buildQuery(param), pageable);
+        Map<Long, Long> comments = commentRepository.findAllCommentsCounter()
+                .stream().collect(Collectors.toMap(CommentsCounter::getEventId, CommentsCounter::getCount));
         List<Long> eventIds = new ArrayList<>();
         Collection<Event> result = new ArrayList<>();
         events.forEach(event -> {
@@ -255,7 +261,8 @@ public class EventServiceImpl implements EventService {
                 result.stream().filter(event -> event.getId() == id).findFirst().get().setViews(view.getHits());
             }
         }
-        return result.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList());
+        return result.stream().map(event -> EventMapper.toEventShortCommentsDto(event, comments))
+                .collect(Collectors.toList());
     }
 
     public Collection<EventFullDto> findAllByParamForAdmin(PredicateParam param,

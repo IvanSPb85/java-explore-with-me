@@ -9,6 +9,7 @@ import ru.practicum.user.dto.UserMapper;
 import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @UtilityClass
 public class EventMapper {
@@ -23,6 +24,20 @@ public class EventMapper {
                 .paid(event.isPaid())
                 .title(event.getTitle())
                 .views(event.getViews()).build();
+    }
+
+    public EventShortDto toEventShortCommentsDto(Event event, Map<Long, Long> comments) {
+        return EventShortDto.builder()
+                .annotation(event.getAnnotation())
+                .category(CategoryMapper.toCategoryDto(event.getCategory()))
+                .confirmedRequests(event.getConfirmedRequests())
+                .eventDate(event.getEventDate())
+                .id(event.getId())
+                .initiator(UserMapper.toUserShortDto(event.getInitiator()))
+                .paid(event.isPaid())
+                .title(event.getTitle())
+                .views(event.getViews())
+                .comments(comments.getOrDefault(event.getId(), 0L)).build();
     }
 
     public Event toEvent(NewEventDto newEventDto, Category category, User initiator) {
